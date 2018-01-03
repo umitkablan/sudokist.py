@@ -159,13 +159,19 @@ if not read_arr:
     exit(1)
 
 while True:
+    soln = 1
     possibles = get_possible_sets_by_counting(read_arr)
     soll = get_solutions_by_one_elem_possibles(possibles)
     if not soll:
         soll = get_solutions_by_only_probables(possibles)
         if not soll:
             break
+        soln = 2
     for (i, j), v in soll:
+        if soln == 1:
+            print "[Counting]",
+        else:
+            print "[By Probable]:",
         print "({},{}): {}".format(i, j, v)
         read_arr[i][j] = v
 print_possible_sets_array(read_arr, possibles)
