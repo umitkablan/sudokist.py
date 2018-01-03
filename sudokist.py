@@ -62,43 +62,45 @@ def get_intersection_of_diffsets(s0, set_lst):
     return res
 
 
-def get_only_probable_in_line(pll):
-    ret = []
-    for i, pl in enumerate(pll):
-        if len(pl) < 1:
-            continue
-        res = get_intersection_of_diffsets(
-            set(pl), [set(l) for l in pll[:i] + pll[i + 1:] if len(l) > 0])
-        if len(res) == 1:
-            ret.append([i, res.pop()])
+def get_only_probable_in_line_at_i(pll, i):
+    ret = None
+    res = get_intersection_of_diffsets(
+        set(pll[i]), [set(l) for l in pll[:i] + pll[i + 1:] if len(l) > 0])
+    if len(res) == 1:
+        ret = res.pop()
     return ret
 
 
-def get_only_probable_in_column_j(possibles, j):
+def get_column_as_line(possibles, j):
     col = []
     for pll in possibles:
         col.append(pll[j])
-    return get_only_probable_in_line(col)
+    return col
 
 
-def get_only_probable_in_NxN_grid_ij(possibles, i, j, N):
+def get_NxN_grid_as_line(possibles, i, j, N):
     col = []
     for l in possibles[i * N: i * N + N]:
         for k in l[j * N:j * N + N]:
             col.append(k)
-    return get_only_probable_in_line(col)
+    return col
 
 
 def get_only_probable_at(possibles_llst, ij):
     i, j = ij
-    ret = [[(i, j_), s]
-           for j_, s in get_only_probable_in_line(possibles_llst[i])]
-    ret.extend([[(i_, j), s]
-                for i_, s in get_only_probable_in_column_j(possibles_llst, j)])
+    ret = get_only_probable_in_line_at_i(possibles_llst[i], j)
+    if ret is not None:
+        return [(ij, ret)]
+    ret = get_only_probable_in_line_at_i(
+        get_column_as_line(possibles_llst, j), i)
+    if ret is not None:
+        return [(ij, ret)]
     ith, jth = i / 3, j / 3
-    ret.extend([[((i_ / 3) + (ith * 3), (i_ % 3) + (jth * 3)), s]
-                for i_, s in get_only_probable_in_NxN_grid_ij(possibles_llst, ith, jth, 3)])
-    return ret
+    ret = get_only_probable_in_line_at_i(
+        get_NxN_grid_as_line(possibles_llst, ith, jth, 3), (i - (ith * 3)) * 3 + (j - (jth * 3)))
+    if ret is not None:
+        return [(ij, ret)]
+    return []
 
 
 def get_possible_sets_by_counting(sudoku_lst):
@@ -130,10 +132,7 @@ def get_solutions_by_only_probables(possibles_lst):
         for j, l in enumerate(ll):
             if len(l) > 1:
                 ret.extend(get_only_probable_at(possibles_lst, (i, j)))
-    dd = dict()
-    for ij, v in ret:
-        dd[ij] = v
-    return [(ij, v) for ij, v in dd.iteritems()]
+    return ret
 
 
 def print_possible_sets_array(sudoku_lst, possibles_lst):
