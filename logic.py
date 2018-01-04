@@ -3,6 +3,21 @@
 from possibles_sets import complete_set
 
 
+def get_column_as_line(possibles, j):
+    col = []
+    for pll in possibles:
+        col.append(pll[j])
+    return col
+
+
+def get_NxN_grid_as_line(possibles, i, j, N):
+    col = []
+    for l in possibles[i * N: i * N + N]:
+        for k in l[j * N:j * N + N]:
+            col.append(k)
+    return col
+
+
 def get_intersection_of_diffsets(s0, set_lst):
     res = complete_set
     for s in set_lst:
@@ -23,21 +38,6 @@ def get_only_probable_in_line_at_i(pll, i):
     return ret
 
 
-def get_column_as_line(possibles, j):
-    col = []
-    for pll in possibles:
-        col.append(pll[j])
-    return col
-
-
-def get_NxN_grid_as_line(possibles, i, j, N):
-    col = []
-    for l in possibles[i * N: i * N + N]:
-        for k in l[j * N:j * N + N]:
-            col.append(k)
-    return col
-
-
 def get_only_probable_at(possibles_llst, ij):
     i, j = ij
     ret = get_only_probable_in_line_at_i(possibles_llst[i], j)
@@ -53,6 +53,61 @@ def get_only_probable_at(possibles_llst, ij):
     if ret is not None:
         return [(ij, ret)]
     return []
+
+
+def get_columns_same_set_in_size_n(set_lst, N):
+    selecteds = []
+    for i in range(0, len(set_lst) - N + 1):
+        if len(set_lst[i]) != N:
+            continue
+        selecteds.append(set_lst[i])
+        for j in range(i + 1, len(set_lst)):
+            if selecteds[0] == set_lst[j]:
+                selecteds.append(set_lst[j])
+                if len(selecteds) == N:
+                    return selecteds[0]
+        selecteds = []
+    return None
+
+
+def get_unique_probable_in_line_at_i(pll, i):
+    ret = None
+    s = set(pll[i])
+    rest = [set(l) for l in pll[:i] + pll[i + 1:] if len(l) > 0]
+    for n in range(2, len(s) + 1):
+        s0 = get_columns_same_set_in_size_n(rest, n)
+        if s0:
+            r = s.difference(s0)
+            if len(r) == 1:
+                ret = r.pop()
+                break
+    return ret
+
+
+def get_unique_probable_at(possibles_lst, ij):
+    i, j = ij
+    ret = get_unique_probable_in_line_at_i(possibles_lst[i], j)
+    if ret is not None:
+        return [(ij, ret)]
+    ret = get_unique_probable_in_line_at_i(
+        get_column_as_line(possibles_lst, j), i)
+    if ret is not None:
+        return [(ij, ret)]
+    ith, jth = i / 3, j / 3
+    ret = get_unique_probable_in_line_at_i(
+        get_NxN_grid_as_line(possibles_lst, ith, jth, 3), (i - (ith * 3)) * 3 + (j - (jth * 3)))
+    if ret is not None:
+        return [(ij, ret)]
+    return []
+
+
+def get_solutions_by_unique_probables(possibles_lst):
+    ret = []
+    for i, ll in enumerate(possibles_lst):
+        for j, l in enumerate(ll):
+            if len(l) > 1:
+                ret.extend(get_unique_probable_at(possibles_lst, (i, j)))
+    return ret
 
 
 def get_solutions_by_only_probables(possibles_lst):

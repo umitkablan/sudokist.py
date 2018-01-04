@@ -3,7 +3,8 @@
 import sys
 
 from possibles_sets import (get_possible_sets_by_counting, complete_set)
-from logic import get_solutions_by_only_probables, get_solutions_by_one_elem_possibles
+from logic import (get_solutions_by_one_elem_possibles,
+                   get_solutions_by_only_probables, get_solutions_by_unique_probables)
 
 
 def read_sudoku_file(filepath):
@@ -39,7 +40,7 @@ def print_possible_sets_array(sudoku_lst, possibles_lst):
         print '---.---.---.---.---.---.---.---.---.'
 
 
-read_arr = read_sudoku_file('data/hard_01.txt')
+read_arr = read_sudoku_file('data/veryhard_01.txt')
 if not read_arr:
     exit(1)
 
@@ -48,15 +49,22 @@ while True:
     possibles = get_possible_sets_by_counting(read_arr)
     soll = get_solutions_by_one_elem_possibles(possibles)
     if not soll:
+        soln = 2
         soll = get_solutions_by_only_probables(possibles)
         if not soll:
-            break
-        soln = 2
+            soln = 3
+            soll = get_solutions_by_unique_probables(possibles)
+            if not soll:
+                break
     for (i, j), v in soll:
         if soln == 1:
             print "[Counting]",
-        else:
+        elif soln == 2:
             print "[By Probable]",
+        elif soln == 3:
+            print "[By Unique Not]",
+        else:
+            print "[...]",
         print "({},{}): {}".format(i, j, v)
         read_arr[i][j] = v
 print_possible_sets_array(read_arr, possibles)
