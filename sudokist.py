@@ -47,16 +47,16 @@ if not read_arr:
 while True:
     soln = 1
     possibles = get_possible_sets_by_counting(read_arr)
-    soll = get_solutions_by_one_elem_possibles(possibles)
-    if not soll:
+    solutions = get_solutions_by_one_elem_possibles(possibles)
+    if not solutions:
         soln = 2
-        soll = get_solutions_by_only_probables(possibles)
-        if not soll:
+        solutions = get_solutions_by_only_probables(possibles)
+        if not solutions:
             soln = 3
-            soll = get_solutions_by_unique_probables(possibles)
-            if not soll:
+            solutions = get_solutions_by_unique_probables(possibles)
+            if not solutions:
                 break
-    for (i, j), v in soll:
+    for (i, j), v in solutions:
         if soln == 1:
             print "[Counting]",
         elif soln == 2:
