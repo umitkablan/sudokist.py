@@ -56,7 +56,7 @@ while True:
         if soln == 1:
             print "[Counting]",
         else:
-            print "[By Probable]:",
+            print "[By Probable]",
         print "({},{}): {}".format(i, j, v)
         read_arr[i][j] = v
 print_possible_sets_array(read_arr, possibles)
