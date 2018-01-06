@@ -48,9 +48,9 @@ while True:
     solutions, desc_key = get_solutions(possibles)
     if not solutions:
         break
-    print "[{}]".format(desc_key),
+    print "[{:<14}]".format(desc_key),
     for (i, j), v in solutions:
-        print "({},{}): {}".format(i, j, v),
+        print "({},{}):{};".format(i, j, v),
         read_arr[i][j] = v
     print
 print_possible_sets_array(read_arr, possibles)
