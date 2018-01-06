@@ -126,3 +126,22 @@ def get_solutions_by_one_elem_possibles(possibles_lst):
             if len(lc) == 1:
                 ret.append(((i, j), lc[0]))
     return ret
+
+
+solutions_descriptions = [
+    {'Counting': 'Select cells where only one fits'},
+    {'Diff Probable': 'Select cells where has a probability which none others has'},
+    {'Unique Remains': 'Select cells where only options for others make it to have one possibility'}
+]
+
+
+def get_solutions(possibles_lst):
+    i = 0
+    solutions = get_solutions_by_one_elem_possibles(possibles_lst)
+    if not solutions:
+        i = 1
+        solutions = get_solutions_by_only_probables(possibles_lst)
+        if not solutions:
+            i = 2
+            solutions = get_solutions_by_unique_probables(possibles_lst)
+    return solutions, solutions_descriptions[i].keys()[0]
