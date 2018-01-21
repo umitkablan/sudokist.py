@@ -6,7 +6,7 @@ solved.
 
 from utility import read_sudoku_file, print_possible_sets_array
 from possibles_sets import get_possible_sets_by_counting
-from logic import get_solutions
+from logic import get_solutions, apply_solution_to_possibles
 
 
 def solve_sudoku(fpath):
@@ -27,8 +27,8 @@ def solve_sudoku(fpath):
         print "[{:<14}]".format(desc_key),
         for (i, j), solution_chr in solutions:
             print "({},{}):{};".format(i, j, solution_chr),
-            read_arr[i][j] = solution_chr
         print
+        apply_solution_to_possibles(read_arr, solutions)
     return possibles
 
 

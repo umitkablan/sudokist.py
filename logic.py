@@ -4,7 +4,10 @@ Implements Sudoku solving logic from possibles' list. Codes 3 basic techniques a
 composition.
 """
 
-from possibles_sets import COMPLETE_SET
+from copy import deepcopy
+
+from possibles_sets import COMPLETE_SET, get_possible_sets_by_counting
+# from utility import print_possible_sets_array
 
 
 def _get_column_as_line(possibles, j):
@@ -132,16 +135,91 @@ def _get_solutions_by_one_elem_possibles(possibles_lst):
     return ret
 
 
+def _find_least_set_in_possibles(possibles_lst):
+    ij_pos, min_, retset = (-1, -1), 10, None
+    for i, line in enumerate(possibles_lst):
+        for j, set_ in enumerate(line):
+            setlen = len(set_)
+            if setlen < min_ and setlen > 1:
+                min_ = setlen
+                ij_pos = (i, j)
+                retset = set_
+    return ij_pos, retset
+
+
+def _check_solution_violation(possibles_lst):
+    for line in possibles_lst:
+        for set_ in line:
+            if isinstance(set_, list) and not set_:
+                return True
+    return False
+
+
+def check_solution_done(possibles_lst):
+    """
+    Checks whether Sudoku possibles list is done - no further solutions.
+    """
+    for line in possibles_lst:
+        for set_ in line:
+            if len(set_) != 1:
+                return False
+    return True
+
+
+def _rearrange_possibilities(possibles_lst):
+    for line in possibles_lst:
+        for j, set_ in enumerate(line):
+            if isinstance(set_, list):
+                line[j] = ' '
+    return get_possible_sets_by_counting(possibles_lst)
+
+
+def _try_solve_guess(possibles_lst):
+    ret = []
+    while True:
+        solutions, desc = get_simple_solutions(possibles_lst)
+        if not solutions:
+            break
+        apply_solution_to_possibles(possibles_lst, solutions)
+        possibles_lst = _rearrange_possibilities(possibles_lst)
+        if _check_solution_violation(possibles_lst):
+            ret = []
+            break
+        # if check_solution_done(possibles_lst):
+        #     break
+        # print_possible_sets_array(possibles_lst)
+        ret.extend(solutions)
+    return ret
+
+
+def _get_solutions_by_guessing(possibles_lst):
+    ret = []
+    (i, j), least_set = _find_least_set_in_possibles(possibles_lst)
+    if least_set is None:
+        return ret
+    copy_lst = deepcopy(possibles_lst)
+    for guess in least_set:
+        copy_lst[i][j] = guess
+        copy_lst = _rearrange_possibilities(copy_lst)
+        ret = _try_solve_guess(copy_lst)
+        if ret:
+            ret.insert(0, ((i, j), guess))
+            break
+        copy_lst, ret = deepcopy(possibles_lst), []
+    return ret
+
+
 SOLUTIONS_DESCRIPTIONS = [
     {'Counting': 'Select cells where only one fits'},
     {'Diff Probable': 'Select cells where has a probability which none others has'},
-    {'Unique Remains': 'Select cells where only options for others make it to have one possibility'}
+    {'Unique Remains': 'Select cells where only option for others make it to have one possibility'},
+    {'Guessing': 'Select cells by guessing'}
 ]
 
 
-def get_solutions(possibles_lst):
+def get_simple_solutions(possibles_lst):
     """
-    Returns solution step(s) and it's associated method name which defines how.
+    Returns solution step(s) and it's associated method name using basic techniques.
 
     :param possibles_lst: Possibles list of Sudoku state
     """
@@ -154,3 +232,24 @@ def get_solutions(possibles_lst):
             i = 2
             solutions = _get_solutions_by_unique_probables(possibles_lst)
     return solutions, SOLUTIONS_DESCRIPTIONS[i].keys()[0]
+
+
+def get_solutions(possibles_lst):
+    """
+    Returns solutions applying all techniques.
+
+    :param possibles_lst: Possibles list of Sudoku state
+    """
+    solutions, desc_key = get_simple_solutions(possibles_lst)
+    if not solutions:
+        solutions, desc_key = (_get_solutions_by_guessing(possibles_lst),
+                               SOLUTIONS_DESCRIPTIONS[3].keys()[0])
+    return solutions, desc_key
+
+
+def apply_solution_to_possibles(possibles_lst, solutions):
+    """
+    Apply solutions to possibles list.
+    """
+    for (i, j), solution_chr in solutions:
+        possibles_lst[i][j] = solution_chr
