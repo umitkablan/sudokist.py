@@ -177,7 +177,7 @@ def _rearrange_possibilities(possibles_lst):
 def _try_solve_guess(possibles_lst):
     ret = []
     while True:
-        solutions, desc = get_simple_solutions(possibles_lst)
+        solutions, _ = get_simple_solutions(possibles_lst)
         if not solutions:
             break
         apply_solution_to_possibles(possibles_lst, solutions)
