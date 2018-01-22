@@ -21,19 +21,20 @@ def solve_sudoku(fpath):
 
     while True:
         possibles = get_possible_sets_by_counting(read_arr)
-        solutions, desc_key = get_solutions(possibles)
-        if not solutions:
+        solutions_list = get_solutions(possibles)
+        if not solutions_list:
             break
-        print "[{:<14}]".format(desc_key),
-        for (i, j), solution_chr in solutions:
-            print "({},{}):{};".format(i, j, solution_chr),
-        print
-        apply_solution_to_possibles(read_arr, solutions)
+        for (desc_key, solutions) in solutions_list:
+            print "[{:<14}]".format(desc_key),
+            for (i, j), solution_chr in solutions:
+                print "({},{}):{};".format(i, j, solution_chr),
+            print
+            apply_solution_to_possibles(read_arr, solutions)
     return possibles
 
 
 if __name__ == '__main__':
-    POSSIBLES = solve_sudoku('data/veryhard_01.txt')
+    POSSIBLES = solve_sudoku('data/extreme_04.txt')
     if not POSSIBLES:
         exit(1)
     print_possible_sets_array(POSSIBLES)

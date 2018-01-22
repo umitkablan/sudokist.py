@@ -177,7 +177,7 @@ def _rearrange_possibilities(possibles_lst):
 def _try_solve_guess(possibles_lst):
     ret = []
     while True:
-        solutions, _ = get_simple_solutions(possibles_lst)
+        desc_key, solutions = get_simple_solutions(possibles_lst)
         if not solutions:
             break
         apply_solution_to_possibles(possibles_lst, solutions)
@@ -185,28 +185,24 @@ def _try_solve_guess(possibles_lst):
         if _check_solution_violation(possibles_lst):
             ret = []
             break
-        # if check_solution_done(possibles_lst):
-        #     break
-        # print_possible_sets_array(possibles_lst)
-        ret.extend(solutions)
+        ret.append((desc_key, solutions))
     return ret
 
 
 def _get_solutions_by_guessing(possibles_lst):
-    ret = []
+    ret, guess = [], 0
     (i, j), least_set = _find_least_set_in_possibles(possibles_lst)
     if least_set is None:
-        return ret
+        return ((i, j), guess), ret
     copy_lst = deepcopy(possibles_lst)
     for guess in least_set:
         copy_lst[i][j] = guess
         copy_lst = _rearrange_possibilities(copy_lst)
         ret = _try_solve_guess(copy_lst)
         if ret:
-            ret.insert(0, ((i, j), guess))
             break
         copy_lst, ret = deepcopy(possibles_lst), []
-    return ret
+    return ((i, j), guess), ret
 
 
 SOLUTIONS_DESCRIPTIONS = [
@@ -231,7 +227,7 @@ def get_simple_solutions(possibles_lst):
         if not solutions:
             i = 2
             solutions = _get_solutions_by_unique_probables(possibles_lst)
-    return solutions, SOLUTIONS_DESCRIPTIONS[i].keys()[0]
+    return SOLUTIONS_DESCRIPTIONS[i].keys()[0], solutions
 
 
 def get_solutions(possibles_lst):
@@ -240,11 +236,16 @@ def get_solutions(possibles_lst):
 
     :param possibles_lst: Possibles list of Sudoku state
     """
-    solutions, desc_key = get_simple_solutions(possibles_lst)
+    ret = []
+    desc_key, solutions = get_simple_solutions(possibles_lst)
     if not solutions:
-        solutions, desc_key = (_get_solutions_by_guessing(possibles_lst),
-                               SOLUTIONS_DESCRIPTIONS[3].keys()[0])
-    return solutions, desc_key
+        (ij_pos, guess), inner_solutions = _get_solutions_by_guessing(possibles_lst)
+        if guess:
+            ret.append((SOLUTIONS_DESCRIPTIONS[3].keys()[0], [(ij_pos, guess)]))
+            ret.extend(inner_solutions)
+    else:
+        ret.append((desc_key, solutions))
+    return ret
 
 
 def apply_solution_to_possibles(possibles_lst, solutions):
